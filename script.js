@@ -5,6 +5,8 @@ var pointsDOM = document.querySelector(".points")
 var letterDOM = document.querySelector(".letterDOM")
 var playerNameDOM = document.querySelector(".playername")
 var captionsDOM = document.querySelector(".captions")
+var wheel = document.querySelector(".wheel");
+wheel.style.display = 'none'
 
 //sounds
 var letterMatch = new Audio("./assets/lettermatch.mp3")
@@ -16,7 +18,9 @@ var click = new Audio("./assets/click.wav")
 var buyBtn = document.querySelector(".buyBtn")
 var spinBtn = document.querySelector(".spinBtn")
 var solveBtn = document.querySelector(".solveBtn")
+var desperateBtn = document.querySelector(".desperateBtn")
 
+desperateBtn.style.display='none'
 
 // gameplay variables
 var letters ='bbccdgghjjkkllmmnnppqrrssttvwwxyyz'
@@ -32,6 +36,58 @@ var score = 0;
 var points =0;
 var applyDouble = false;
 var applyBonus = false;
+var desperateCount = 0;
+
+
+
+//speech functions
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+var recognition = new SR();
+
+recognition.onstart=()=>{
+    console.log("recording has started")
+}
+
+recognition.onend=()=>{
+    console.log("recording has ended")
+}
+
+recognition.onresult=(e)=>{
+
+    console.log(e.results[0][0])
+    var playerAnswer = e.results[0][0].transcript
+    console.log(playerAnswer)
+
+    if(playerAnswer === null){
+        console.log("they must have typed")
+        return;
+    }
+    captionsDOM.innerHTML = `${playerNameDOM.innerHTML} answer: ${playerAnswer}`
+    setTimeout(()=>{clearCaptions()
+    },1500);
+    var answer =[];
+    playerAnswer.split("").forEach(l=>{
+        if(l !== "'"){
+            answer.push(l.toLowerCase())
+        }
+    })
+    console.log(answer.join(""))
+
+     if(answer.join("") === globalPhrase){
+        alert("You win!")
+        winGame()
+    }
+    
+    else{
+        alert("Sorry, you did not say the right answer!")
+    }
+
+}
+
+
+
+
 
 const main = async()=>{
 
@@ -89,6 +145,8 @@ buyBtn.onclick=buyVowel
 
 solveBtn.onclick=solvePuzzle;
 
+desperateBtn.onclick=freeLetterChoice;
+
 
 function spinLetters(){
     let spinCount = (Math.random() * 20 | 0) + 5;
@@ -120,8 +178,8 @@ function renderSpinLetters(count){
 
 function spinResult(letter){
     
-    var letterTiles = document.querySelectorAll(".letterTile")
-    
+    // var letterTiles = document.querySelectorAll(".letterTile")
+    var emptyGuess = true
     
     console.log("Letter: " + letter)
     if(letter.length > 1){
@@ -134,13 +192,15 @@ function spinResult(letter){
     globalPhrase.split("").forEach((val,idx)=>{
       
         if(val === letter){
+            emptyGuess = false;
+            desperateCount = 0;
             captionsDOM.innerHTML = "Nice! 👍🏾"
             clearCaptions()
             console.log("we got a match!")
             spliceLetter(letter)
             console.log("LettersLength: " + letters.length)
 
-
+if(vowels.indexOf(letter) === -1){
             if(applyDouble){
                 points+=10;
                 applyDouble = false;
@@ -152,11 +212,62 @@ function spinResult(letter){
 
             points+=10;
             pointsDOM.innerHTML = points;
+        }
+
             letterMatch.play()
              tiles[idx].className += " light-tile"
              tiles[idx].children[0].style.display='block'
         }
+        // else{
+        //     desperateCount++;
+        //     console.log("desperateCount: " + desperateCount)
+
+        //     if(desperateCount === 3){
+        //         desperateBtn.style.display='block'
+        //         desperateCount = 0
+        //     }
+        // }
     })
+    if(emptyGuess){
+        console.log("Bad luck mate")
+        desperateIncrement()
+    }
+}
+
+
+function desperateIncrement(){
+    desperateCount++;
+    console.log("desperateCount: " + desperateCount)
+
+    if(desperateCount === 3){
+        desperateBtn.style.display='block'
+        desperateCount = 0
+    }
+}
+
+
+function freeLetterChoice(){
+
+    let freeLetter = prompt("Hey looks like we're in a drought, so you get a Maggie letter wish!")
+
+    while(!checkVowel(freeLetter)){
+        freeLetter = prompt("Ohh, Im sorry, you cant have that for free, pick a consonant")
+    }
+
+    console.log("FreeLetter: " + freeLetter)
+    spinResult(freeLetter)
+    desperateBtn.style.display = 'none'
+    return;
+
+}
+
+function checkVowel(letter){
+    if(vowels.indexOf(letter) !== -1){
+            return false;
+    }
+    else{
+        return true;
+    }
 }
 
 
@@ -178,14 +289,21 @@ function buyVowel(){
 }
 
 
+
+
+
+
+
 function solvePuzzle(){
-
-    let playerAnswer = prompt("And the answer is?")
-
+    recognition.start()
+    // alert("And the answer is?")
+     let playerAnswer = prompt("And the answer is? (You can speak or type it! :) )")
+    console.log(playerAnswer)
     if(playerAnswer === globalPhrase){
         alert("You win!")
         winGame()
     }
+    else if(playerAnswer === null || playerAnswer === "")return;
     else{
         alert("Sorry, not correct!")
     }
@@ -198,20 +316,36 @@ function winGame(){
 
     for(let i = 0;i<h3Tiles.length;i++){
         setTimeout(()=>{
-            h3Tiles[i].className += " light-tile"
+            h3Tiles[i].parentElement.className += " light-tile"
+            h3Tiles[i].style.display = 'block'
+            letterMatch.play()
 
             if( i === h3Tiles.length-1){
-                restartGame()
+                
+                // restartGame()
+                showMaggie()
             }
         },i*250)
     }
 
     //do a score system based on # of unturned tiles
 
-    score+=150
+    score+=150;
 
     scoreDOM.innerHTML = score;
 
+}
+
+function showMaggie(){
+    wheel.style.display = 'block'
+    wheel.classList.add('spin-wheel')
+
+    setTimeout(()=>{
+        restartGame()
+        wheel.classList.remove("spin-wheel")
+        wheel.style.display = 'none'
+
+    },2500)
 }
 
 
@@ -283,9 +417,6 @@ function specialRound(special){
 
 
 
-
-
-
 function clearCaptions(){
     setTimeout(()=>{
         captionsDOM.innerHTML = ""
@@ -302,6 +433,14 @@ function readMaggieResult(str){
         }
     else {
         captionsDOM.innerHTML="Ahhh, she penalized you, 5 poitns! 😄🤣"
+        points -= 5
+        pointsDOM.innerHTML = points;
     }
 
 }
+
+
+
+
+
+

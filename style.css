@@ -107,6 +107,42 @@
     color:white;
         }
 
+.desperateBtn{
+    background-color:violet;
+    color:white;
+}
+
 .scoreColumn{
     width:70%;
 }
+
+
+.wheel{
+
+    height:100%;
+    width:100%;
+    border-radius:50%;
+    border:1px solid black;
+    position:absolute;
+    text-align:center;
+    background-image:url("./assets/maggie.jpg");
+    top:0%;
+    /* animation:spin 2s forwards; */
+    z-index:2;
+  
+}
+
+.spin-wheel{
+         animation:spin 2s forwards;
+
+}
+
+
+@keyframes spin{
+    0%{height:0%; width:0%;left:50%;top:50%;}
+    100%{height:100%; width:100%; transform:rotate(1800deg);left:0%;top:0%;}
+}
+
+
+
+
