@@ -33,7 +33,7 @@
     padding:1em;
     grid-template-columns:repeat(11,1fr);
     grid-gap:4px;
-    background:green;
+    background:rgb(0,255,0,0.8);
     border-radius:15%;
     border:1px solid black;
 
@@ -46,6 +46,16 @@
     display:flex;
     align-items:center;
     justify-content: center;
+}
+
+.light-tile{
+    animation:lightup 1s forwards;
+    transition:1s ease;
+    border-radius:5%;
+}
+
+@keyframes lightup{
+    100%{background:green;color:white;border:1px solid black}
 }
 
 .tileh3{
